@@ -1,0 +1,139 @@
+pipeline {
+    agent any
+    tools {
+		maven 'maven'	   
+    }
+  
+    stages {
+	      stage('Pull Artifact From Nexus') {	
+            steps {
+				echo "Version Number ${env.versionNumber}"
+				
+				sh "cd /var/jenkins_home/workspace/WorkFlowEnging_Release/"
+				sh "rm -rf Smart2GoWorkFlowEngine*.war"
+
+                sh "wget --user nexus --password nexus http://192.168.3.163:8081/repository/smart2go/com/ntg/engine/Smart2GoWorkFlowEngine/${env.versionNumber}/Smart2GoWorkFlowEngine-${env.versionNumber}.war"
+                sh "mv Smart2GoWorkFlowEngine-${env.versionNumber}.war Smart2GoWorkFlowEngine.war"
+            }
+        }
+
+    
+	    stage('deploy') {	
+            steps {
+				echo "Jenkins Build Number ${env.BUILD_NUMBER}"
+				echo "Instance Name ${env.instanceName}"
+				echo "Server Name ${env.serverName}"
+					script {
+						switch (env.serverName) {
+							case "4.9":
+								sh "ssh smart2go@192.168.4.9 mkdir /home/smart2go/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}" 
+								sh "scp Smart2GoWorkFlowEngine.war smart2go@192.168.4.9:/home/smart2go/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}"
+						
+								sh "rm -rf Smart2GoWorkFlowEngine*.war"
+						
+								sh """
+								ssh smart2go@192.168.4.9 <<EOF
+								cd /home/smart2go/011_cloud/Script/ 
+								bash docker_upgrade_WF.sh ${env.instanceName} WFv${env.BUILD_NUMBER}
+								EOF
+								"""
+								.stripIndent()
+								break
+							case "3.46":
+								sh "ssh root@192.168.3.46 mkdir /home/smart2go/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}" 
+								sh "scp Smart2GoWorkFlowEngine.war root@192.168.3.46:/home/smart2go/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}"
+								sh "rm -rf Smart2GoWorkFlowEngine*.war"
+						
+								sh """
+								ssh root@192.168.3.46 <<EOF
+								cd /home/smart2go/011_cloud/Script/ 
+								bash docker_upgrade_WF.sh ${env.instanceName} WFv${env.BUILD_NUMBER}
+								EOF
+								"""
+								.stripIndent()
+								break
+							case "3.109":
+								sh "ssh smart2go@192.168.3.109 mkdir /home/smart2go/cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}" 
+								sh "scp Smart2GoWorkFlowEngine.war smart2go@192.168.3.109:/home/smart2go/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}"
+								sh "rm -rf Smart2GoWorkFlowEngine*.war"
+						
+								sh """
+								ssh smart2go@192.168.3.109 <<EOF
+								cd /home/smart2go/011_cloud/Script/ 
+								bash docker_upgrade_WF.sh ${env.instanceName} WFv${env.BUILD_NUMBER}
+								EOF
+								"""
+								.stripIndent()
+								break
+							case "3.78":
+								sh "ssh itts@192.168.3.78 mkdir /home/itts/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}" 
+								sh "scp Smart2GoWorkFlowEngine.war itts@192.168.3.78:/home/itts/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}"
+								sh "rm -rf Smart2GoWorkFlowEngine*.war"
+						
+								sh """
+								ssh itts@192.168.3.78 <<EOF
+								cd /home/itts/011_cloud/Script/ 
+								bash docker_upgrade_WF.sh ${env.instanceName} WFv${env.BUILD_NUMBER}
+								EOF
+								"""
+								.stripIndent()
+								break
+							case "3.115":
+								sh "ssh smart2go@192.168.3.115 mkdir /home/smart2go/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}" 
+								sh "scp Smart2GoWorkFlowEngine.war smart2go@192.168.3.115:/home/smart2go/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}"
+								sh "rm -rf Smart2GoWorkFlowEngine*.war"
+						
+								sh """
+								ssh smart2go@192.168.3.115 <<EOF
+								cd /home/smart2go/011_cloud/Script/ 
+								bash docker_upgrade_WF.sh ${env.instanceName} WFv${env.BUILD_NUMBER}
+								EOF
+								"""
+								.stripIndent()
+								break
+							case "90.9":
+								sh "ssh smart2go@192.168.90.9 mkdir /home/smart2go/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}" 
+								sh "scp Smart2GoWorkFlowEngine.war smart2go@192.168.90.9:/home/smart2go/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}"
+								sh "rm -rf Smart2GoWorkFlowEngine*.war"
+						
+								sh """
+								ssh smart2go@192.168.90.9 <<EOF
+								cd /home/smart2go/011_cloud/Script/ 
+								bash docker_upgrade_WF.sh ${env.instanceName} WFv${env.BUILD_NUMBER}
+								EOF
+								"""
+								.stripIndent()
+								break
+							case "180.91":
+								sh "ssh ntguser@199.27.180.91 mkdir /home/ntguser/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}" 
+								sh "scp Smart2GoWorkFlowEngine.war ntguser@199.27.180.91:/home/ntguser/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}"
+								sh "rm -rf Smart2GoWorkFlowEngine*.war"
+						
+								sh """
+								ssh ntguser@199.27.180.91 <<EOF
+								cd /home/ntguser/011_cloud/Script/ 
+								bash docker_upgrade_WF.sh ${env.instanceName} WFv${env.BUILD_NUMBER}
+								EOF
+								"""
+								.stripIndent()
+								break
+							case "180.81":
+								sh "ssh root@199.27.180.81 mkdir /root/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}" 
+								sh "scp Smart2GoWorkFlowEngine.war root@199.27.180.81:/root/011_cloud/Script/deployments/wars/WFv${env.BUILD_NUMBER}"
+								sh "rm -rf Smart2GoWorkFlowEngine*.war"
+						
+								sh """
+								ssh root@199.27.180.81 <<EOF
+								cd /root/011_cloud/Script/ 
+								bash docker_upgrade_WF.sh ${env.instanceName} WFv${env.BUILD_NUMBER}
+								EOF
+								"""
+								.stripIndent()
+								break
+						}
+					}
+		    }
+        }
+   
+    }
+}

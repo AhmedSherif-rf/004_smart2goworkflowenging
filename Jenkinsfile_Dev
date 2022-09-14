@@ -1,0 +1,203 @@
+pipeline {
+    agent any
+    tools {
+		maven 'maven'	   
+    }
+       environment {
+        // This can be nexus3 or nexus2
+        NEXUS_VERSION = "nexus3"
+        // This can be http or https
+        NEXUS_PROTOCOL = "http"
+        // Where your Nexus is running
+        NEXUS_URL = "192.168.3.36:8082"
+        // Repository where we will upload the artifact
+        NEXUS_REPOSITORY = "maven-releases"  
+        // Jenkins credential id to authenticate to Nexus OSS
+        NEXUS_CREDENTIAL_ID = "nexus-admin"
+		VERSION = "${env.BUILD_NUMBER}"
+       }
+    stages {
+	    stage('Build') {	
+            steps {
+                // Optionally use a Maven environment you've configured already
+                withMaven(){
+					sh 'mvn clean install -X'
+                }
+            }
+        }
+//		stage('SonarQube analysis') {
+//            tools {
+//                jdk "java-11" // the name you have given the JDK installation using the JDK manager (Global Tool Configuration)
+//            }
+//            steps {
+//                withMaven(){
+//                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.6.0.1398:sonar -Dsonar.projectKey=smart2goworkflowenging -Dsonar.host.url=http://192.168.3.36:9001 -Dsonar.login=3be07132d4c32853ee8b7ff807b93fa23ec6eb12'
+//                }
+//            }
+//        }
+    
+	    stage('deploy') {	
+            steps {
+					echo "${env.VERSION}"
+					echo "Server Name  ${params.serverName}"
+					echo "Instance Name ${params.instanceName}"
+                 script {
+                 switch (params.serverName) {
+                     case "3.78":
+                        echo "Start upgrading Instance ${params.instanceName} on ${params.serverName} server"
+                 
+                        sh "ssh jenkins@192.168.3.78 mkdir /home/s2g-test/011_cloud/Script/deployments/wars/WFv${env.VERSION}" 
+    					sh "scp /var/jenkins_home/workspace/WorkFlowEnging_Dev/target/Smart2GoWorkFlowEngine.war jenkins@192.168.3.78:/home/s2g-test/011_cloud/Script/deployments/wars/WFv${env.VERSION}"
+    					sh """
+    					ssh jenkins@192.168.3.78 <<EOF
+    					cd /home/s2g-test/011_cloud/Script/ 
+    					bash docker_upgrade_WF.sh ${params.instanceName} WFv${env.VERSION}
+    					cd deployments/wars
+    					rm -rf  WFv${env.VERSION}
+    					EOF
+    					"""
+    					   .stripIndent()
+                        break
+                 case "3.109": 
+                        
+                        echo "Start upgrading Instance ${params.instanceName} on ${params.serverName} server"
+                        sh "ssh smart2go@192.168.3.109 mkdir /home/smart2go/cloud/Script/deployments/wars/WFv${env.VERSION}" 
+    					sh "scp /var/jenkins_home/workspace/WorkFlowEnging_Dev/target/Smart2GoWorkFlowEngine.war smart2go@192.168.3.109:/home/smart2go/cloud/Script/deployments/wars/WFv${env.VERSION}"
+    					sh """
+    					ssh smart2go@192.168.3.109 <<EOF
+    					cd /home/smart2go/cloud/Script/ 
+    					bash docker_upgrade_WF.sh ${params.instanceName} WFv${env.VERSION}
+    					cd deployments/wars
+    					rm -rf  WFv${env.VERSION}
+    					EOF
+    					"""
+    					   .stripIndent()    
+                        break
+                 case "4.9":
+                        echo "Start upgrading Instance ${params.instanceName} on ${params.serverName} server"
+                        
+                        sh "ssh jenkins@192.168.4.9 mkdir /home/smart2go/011_cloud/Script/deployments/wars/WFv${env.VERSION}" 
+    					sh "scp /var/jenkins_home/workspace/WorkFlowEnging_Dev/target/Smart2GoWorkFlowEngine.war jenkins@192.168.4.9:/home/smart2go/011_cloud/Script/deployments/wars/WFv${env.VERSION}"
+    					sh """
+    					ssh jenkins@192.168.4.9 <<EOF
+    					cd /home/smart2go/011_cloud/Script/ 
+    					bash docker_upgrade_WF.sh ${params.instanceName} WFv${env.VERSION}
+    					cd deployments/wars
+    					rm -rf  WFv${env.VERSION}
+    					EOF
+    					"""
+    					   .stripIndent()   
+                        break
+                 case "90.9":
+                        echo "Start upgrading Instance ${params.instanceName} on ${params.serverName} server"
+                        
+                        sh "ssh smart2go@192.168.90.9 mkdir /home/smart2go/011_cloud/Script/deployments/wars/WFv${env.VERSION}" 
+    					sh "scp /var/jenkins_home/workspace/WorkFlowEnging_Dev/target/Smart2GoWorkFlowEngine.war smart2go@192.168.90.9:/home/smart2go/011_cloud/Script/deployments/wars/WFv${env.VERSION}"
+    					sh """
+    					ssh smart2go@192.168.90.9 <<EOF
+    					cd /home/smart2go/011_cloud/Script/ 
+    					bash docker_upgrade_WF.sh ${params.instanceName} WFv${env.VERSION}
+    					cd deployments/wars
+    					rm -rf  WFv${env.VERSION}
+    					EOF
+    					"""
+    					   .stripIndent()
+                        break
+                 case "canada152":
+                        echo "Start upgrading Instance ${params.instanceName} on ${params.serverName} server"
+                        
+                        break
+                 case "ken81":
+                        echo "Start upgrading Instance ${params.instanceName} on ${params.serverName} server"
+                        
+                        sh "curl -X DELETE --insecure -u DBA:306090100 https://ftp.ntgeg.com/remote.php/webdav/Jenkins-Dev-wars/Smart2GoWorkFlowEngine.war"
+					sh "curl -X PUT --insecure -u DBA:306090100 https://ftp.ntgeg.com/remote.php/webdav/Jenkins-Dev-wars/Smart2GoWorkFlowEngine.war --data-binary @/var/jenkins_home/workspace/WorkFlowEnging_Dev/target/Smart2GoWorkFlowEngine.war"
+					 
+					sh """
+					ssh jenkins@199.27.180.81 <<EOF
+					mkdir /home/ntguser/011_cloud/Script/deployments/wars/WFv${env.VERSION}
+					cd /home/ntguser/011_cloud/Script/deployments/wars/WFv${env.VERSION}
+					wget --no-check-certificate --user=DBA --password=306090100  https://ftp.ntgeg.com/remote.php/webdav/Jenkins-Dev-wars/Smart2GoWorkFlowEngine.war
+				
+					cd /home/ntguser/011_cloud/Script/ 
+					bash docker_upgrade_WF.sh ${params.instanceName} WFv${env.VERSION}
+					cd deployments/wars
+					rm -rf  WFv${env.VERSION}
+					EOF
+					"""
+					   .stripIndent()
+                        break
+                 case "ken91":
+					
+					echo "Start upgrading Instance ${params.instanceName} on ${params.serverName} server"
+					
+					sh "curl -X DELETE --insecure -u DBA:306090100 https://ftp.ntgeg.com/remote.php/webdav/Jenkins-Dev-wars/Smart2GoWorkFlowEngine.war"
+					sh "curl -X PUT --insecure -u DBA:306090100 https://ftp.ntgeg.com/remote.php/webdav/Jenkins-Dev-wars/Smart2GoWorkFlowEngine.war --data-binary @/var/jenkins_home/workspace/WorkFlowEnging_Dev/target/Smart2GoWorkFlowEngine.war"
+					 
+					sh """
+					ssh ntguser@199.27.180.91 <<EOF
+					mkdir /home/ntguser/011_cloud/Script/deployments/wars/WFv${env.VERSION}
+					cd /home/ntguser/011_cloud/Script/deployments/wars/WFv${env.VERSION}
+					wget --no-check-certificate --user=DBA --password=306090100  https://ftp.ntgeg.com/remote.php/webdav/Jenkins-Dev-wars/Smart2GoWorkFlowEngine.war
+				
+					cd /home/ntguser/011_cloud/Script/ 
+					bash docker_upgrade_WF.sh ${params.instanceName} WFv${env.VERSION}
+					cd deployments/wars
+					rm -rf  WFv${env.VERSION}
+					EOF
+					"""
+					   .stripIndent()
+                        break         
+                 default:
+                    echo "Start doing daily Jobs"
+                    
+					sh "ssh jenkins@192.168.3.78 mkdir /home/s2g-test/011_cloud/Script/deployments/wars/WFv${env.VERSION}" 
+					sh "scp /var/jenkins_home/workspace/WorkFlowEnging_Dev/target/Smart2GoWorkFlowEngine.war jenkins@192.168.3.78:/home/s2g-test/011_cloud/Script/deployments/wars/WFv${env.VERSION}"
+					sh """
+					ssh jenkins@192.168.3.78 <<EOF
+					cd /home/s2g-test/011_cloud/Script/ 
+					bash docker_upgrade_WF.sh S2G_Test WFv${env.VERSION}
+					cd deployments/wars
+					rm -rf  WFv${env.VERSION}
+					EOF
+					"""
+					   .stripIndent()
+					   
+					   
+					sh "ssh smart2go@192.168.3.109 mkdir /home/smart2go/cloud/Script/deployments/wars/WFv${env.VERSION}" 
+					sh "scp /var/jenkins_home/workspace/WorkFlowEnging_Dev/target/Smart2GoWorkFlowEngine.war smart2go@192.168.3.109:/home/smart2go/cloud/Script/deployments/wars/WFv${env.VERSION}"
+					sh """
+					ssh smart2go@192.168.3.109 <<EOF
+					cd /home/smart2go/cloud/Script/ 
+					bash docker_upgrade_WF.sh mob_dev WFv${env.VERSION}
+					cd deployments/wars
+					rm -rf  WFv${env.VERSION}
+					EOF
+					"""
+					   .stripIndent()    
+					   
+					   
+					sh "curl -X DELETE --insecure -u DBA:306090100 https://ftp.ntgeg.com/remote.php/webdav/Jenkins-Dev-wars/Smart2GoWorkFlowEngine.war"
+					sh "curl -X PUT --insecure -u DBA:306090100 https://ftp.ntgeg.com/remote.php/webdav/Jenkins-Dev-wars/Smart2GoWorkFlowEngine.war --data-binary @/var/jenkins_home/workspace/WorkFlowEnging_Dev/target/Smart2GoWorkFlowEngine.war"
+					 
+					sh """
+					ssh ntguser@199.27.180.91 <<EOF
+					mkdir /home/ntguser/011_cloud/Script/deployments/wars/WFv${env.VERSION}
+					cd /home/ntguser/011_cloud/Script/deployments/wars/WFv${env.VERSION}
+					wget --no-check-certificate --user=DBA --password=306090100  https://ftp.ntgeg.com/remote.php/webdav/Jenkins-Dev-wars/Smart2GoWorkFlowEngine.war
+				
+					cd /home/ntguser/011_cloud/Script/ 
+					bash docker_upgrade_WF.sh SME-dev2 WFv${env.VERSION}
+					cd deployments/wars
+					rm -rf  WFv${env.VERSION}
+					EOF
+					"""
+					   .stripIndent()
+                 }
+                }
+                
+            }
+        }
+   
+    }
+}
